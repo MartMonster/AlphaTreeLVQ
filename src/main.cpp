@@ -7,7 +7,7 @@
 
 // args: Filename, nchannels, numthreads, testimgsize, algorithmcode, bitdepth, tseflag
 int main(int argc, char **argv) {
-    srand(time(NULL));
+    // srand(time(NULL));
 
     const auto configFileName = argc < 2 ? "config.txt" : std::string(argv[1]);
     alphatreeConfig.initialize(configFileName);
@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
 
     auto [image, w, h, ch] = PNGCodec::imread(params.UseRandomlyGeneratedImages ? "RAND" : filePath);
 
-    const bool reduceImageBitdepth = false;
+    const bool reduceImageBitdepth = true;
 
     const auto &width = params.UseRandomlyGeneratedImages ? params.randomGenImageWidth : w;
     const auto &height = params.UseRandomlyGeneratedImages ? params.randomGenImageHeight : h;
@@ -41,15 +41,13 @@ int main(int argc, char **argv) {
     const auto &fparam2 = params.fparam2;
 
     if (!params.UseRandomlyGeneratedImages)
-        printf("Image file name: %s\n", params.imageFileName.c_str());
-    printf("=======================================================================\n");
-    printf("========== imgsize = %d x %d (%d bits, %d ch, %dN) ================\n", (int)height, (int)width,
-           (int)bitdepth, (int)nch, params.connectivity);
-    printf("=======================================================================\n");
-    printf("-----------------------------------------------------------------------------------\n");
-    printf("%d Running %s (%d threads)\n", (int)algCode, alphatreeConfig.getAlphaTreeAlgorithmName(algCode).c_str(),
-           (int)nthr);
-    printf("-----------------------------------------------------------------------------------\n");
+        std::cout << "Image file name: " << params.imageFileName << std::endl;
+    std::cout << "=======================================================================" << std::endl;
+    std::cout << "========== imgsize = " << height << " x " << width << " (" << bitdepth << " bits, " << nch << " ch, " << params.connectivity << "N) ================" << std::endl;
+    std::cout << "=======================================================================" << std::endl;
+    std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+    std::cout << algCode << " Running " << alphatreeConfig.getAlphaTreeAlgorithmName(algCode) << " (" << nthr << " threads)" << std::endl;
+    std::cout << "-----------------------------------------------------------------------------------" << std::endl;
     std::vector<double> runtimes;
 
     for (int itr = 0; itr < nitr; itr++) {
@@ -109,8 +107,7 @@ int main(int argc, char **argv) {
                     pMin = std::min(pMin, pixel);
                 }
 
-                printf("reduceImageBitdepth - BitDepth = params.bitdepth = %d / DR = %d - %d\n", (int)params.bitdepth,
-                       (int)pMin, (int)pMax);
+                std::cout << "reduceImageBitdepth - BitDepth = params.bitdepth = " << params.bitdepth << " / DR = " << pMin << " - " << pMax << std::endl;
             }
 
             uint16_t maxVal = *std::max_element(image.begin(), image.end());
@@ -120,16 +117,11 @@ int main(int argc, char **argv) {
                 tree.BuildAlphaTree(image.data(), height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1,
                                     fparam2, iparam1);
 
+
                 const bool rgbFilter = true;
                 if (rgbFilter) {
-
-                    int sizeThr = 16;
-                    for (int i = 1; i < 300; i++) {
-                        int alphaThr = 0.1 + i * 10;
-                        tree.AlphaFilter(image.data(), alphaThr, sizeThr);
-                        std::string str = "out_" + std::to_string(alphaThr) + ".png";
-                        PNGCodec::imwrite(image, w, h, ch, str.c_str());
-                    }
+                    tree.AlphaFilter(image.data(), 170);
+                    PNGCodec::imwrite(image, w, h, ch, "out005.png");
                 }
 
                 tEnd = get_wall_time();
@@ -141,12 +133,20 @@ int main(int argc, char **argv) {
                 tStart = get_wall_time();
                 tree.BuildAlphaTree(image8.data(), height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1,
                                     fparam2, iparam1);
+                for (size_t i = 0; i < image.size() && itr > 0; i++) {
+                    if (image8[i] > 0) std::cout << i << ": " << (uint16_t) image8[i] << std::endl;
+                }
                 tEnd = get_wall_time();
+
+                // if (!itr) {
+                //     tree.AlphaFilter(image8.data(), 170);
+                //     PNGCodec::imwrite(image, w, h, ch, "out005.png");
+                // }
             }
         }
 
         auto runtime = tEnd - tStart;
-        printf("-------------------Run %d/%d: %.3f------------------\n", (int)itr + 1, nitr, runtime);
+        std::cout << "-------------------Run " << itr+1 << "/" << nitr << ": " << runtime << "------------------" << std::endl;
         runtimes.push_back(runtime);
     }
 
@@ -154,10 +154,9 @@ int main(int argc, char **argv) {
         double minRuntime = *std::min_element(runtimes.begin(), runtimes.end());
         double imgsize = (double)(width * height);
 
-        printf("================== Summary ==================\n");
-        printf("Processing speed: %.3fMpix/s / Memory use %.3fB/pix \n", (imgsize / minRuntime) * 1e-6,
-               (double)max_memuse / imgsize);
-        printf("=============================================\n");
+        std::cout << "================== Summary ==================" << std::endl;
+        std::cout << "Processing speed: " << (imgsize / minRuntime) * 1e-6 << "Mpix/s / Memory use "  << (double)max_memuse / imgsize << "B/pix" << std::endl;
+        std::cout << "=============================================" << std::endl;
     }
 
     return 0;

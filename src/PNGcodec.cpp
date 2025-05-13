@@ -1,5 +1,8 @@
 #include <PNGcodec.hpp>
 
+#include <iostream>
+#include <filesystem>
+
 cv::Mat PNGCodec::toCVMat(const std::vector<uint16_t> &image, int width, int height, int channels) {
     if (channels == 1) {
         cv::Mat imageCV(height, width, CV_16U);
@@ -76,8 +79,20 @@ std::tuple<std::vector<uint16_t>, int, int, int> PNGCodec::imread(const std::str
     if (filename == "RAND")
         return {{}, -1, -1, -1};
 
+    std::cerr << &filename << std::endl;
+    std::cerr << filename.size() << std::endl;
+
     // // Read the image file
+    std::string a = filename;
+    std::cerr << &a << std::endl;
     cv::Mat imageCV = cv::imread(filename, cv::IMREAD_UNCHANGED);
+
+    // namespace fs = std::filesystem;
+    // std::cout << std::endl << "Current working directory: " << fs::current_path() << std::endl;
+    // std::cout << std::endl << "Files in current directory:\n";
+    // for (const auto& entry : fs::directory_iterator(fs::current_path())) {
+    //     std::cout << " - " << entry.path().filename() << '\n';
+    // }
 
     // Check if the image was loaded successfully
     if (imageCV.empty()) {
