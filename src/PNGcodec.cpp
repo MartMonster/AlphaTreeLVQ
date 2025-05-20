@@ -32,6 +32,8 @@ cv::Mat PNGCodec::toCVMat(const std::vector<uint16_t> &image, int width, int hei
 }
 
 std::vector<uint16_t> PNGCodec::toImage(const cv::Mat &imageCV) {
+    std::cerr << "Image type: " << imageCV.type() << ", CV_8UC3: " << CV_8UC3 << std::endl;
+
     if (imageCV.type() == CV_16U) {
         std::vector<uint16_t> image(imageCV.cols * imageCV.rows);
         std::copy(imageCV.begin<uint16_t>(), imageCV.end<uint16_t>(), image.begin());
@@ -67,8 +69,10 @@ std::vector<uint16_t> PNGCodec::toImage(const cv::Mat &imageCV) {
         std::copy(g.begin<uint8_t>(), g.end<uint8_t>(), image8.begin() + imageCV.cols * imageCV.rows);
         std::copy(b.begin<uint8_t>(), b.end<uint8_t>(), image8.begin() + imageCV.cols * imageCV.rows * 2);
         std::vector<uint16_t> image(imageCV.cols * imageCV.rows);
-        for (size_t i = 0; i < image.size(); i++)
+        for (size_t i = 0; i < image.size(); i++) {
             image[i] = image8[i];
+            // std::cerr << image[i] << std::endl;
+        }
         return image;
     }
 
@@ -101,6 +105,12 @@ std::tuple<std::vector<uint16_t>, int, int, int> PNGCodec::imread(const std::str
     }
 
     auto image = toImage(imageCV);
+
+    // for (size_t i = 0; i < image.size(); i++)
+    //     std::cerr << image[i] << std::endl;
+    // for (auto pixel : image) {
+    //     std::cerr << &pixel << std::endl;
+    // }
 
     return {image, imageCV.cols, imageCV.rows, imageCV.channels()};
 }

@@ -103,6 +103,7 @@ int main(int argc, char **argv) {
 
                 for (auto &pixel : image) {
                     pixel = pixel >> shamt;
+                    // std::cerr << pixel << std::endl;
                     pMax = std::max(pMax, pixel);
                     pMin = std::min(pMin, pixel);
                 }
@@ -121,7 +122,11 @@ int main(int argc, char **argv) {
                 const bool rgbFilter = true;
                 if (rgbFilter) {
                     tree.AlphaFilter(image.data(), 170);
-                    PNGCodec::imwrite(image, w, h, ch, "out005.png");
+                    std::ostringstream filename;
+                    filename << "output/out00" << itr+1 << ".png";
+                    std::cerr << "trying to write image to " << filename.str() << std::endl;
+                    PNGCodec::imwrite(image, w, h, ch, filename.str());
+                    std::cerr << "wrote image to " << filename.str() << std::endl;
                 }
 
                 tEnd = get_wall_time();

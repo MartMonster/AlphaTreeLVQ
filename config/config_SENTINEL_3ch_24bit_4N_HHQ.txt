@@ -1,4 +1,4 @@
-ImageFileName=schiphol.tiff
+ImageFileName=images/texel.tiff
 LogFileName=test
 UseRandomlyGeneratedImages=0
 RandomlyGeneratedImageWidth=0
@@ -33,9 +33,11 @@ NumberOfThreads=1
 # 16. FloodHierHeapQueueNoCache
 # 17. FloodHeapQueueNaiveNoCache
 # 18. FloodHierHeapQueuePar
-AlphaTreeAlgorithm=FloodHierHeapQueue
 
-BitDepth=8
+AlphaTreeAlgorithm=FloodHierHeapQueue
+# AlphaTreeAlgorithm=Unionfind
+
+BitDepth=16
 UseTreeSizeEstimation=1
 Connectivity=4
 NumberOfTestIterations=5
