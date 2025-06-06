@@ -2568,7 +2568,7 @@ void AlphaTree<Pixel>::runFloodHHPQ(ImgIdx startingPixel, const Pixel *img, floa
 #if RUN_FANCY_VIS_FOR_DEBUG
                 printVisit(p, currentLevel);
                 queue->print();
-                printAll(isVisited, dimg);
+                printAll(isVisited, (const uint8_t*) QItem::EDGE_CONNECTED, img);
                 std::getchar();
 #endif
 
