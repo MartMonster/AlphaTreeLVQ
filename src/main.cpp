@@ -122,6 +122,7 @@ int main(int argc, char **argv) {
                 const bool rgbFilter = true;
                 if (rgbFilter) {
                     tree.AlphaFilter(image.data(), 170);
+                    // tree.AreaFilter(image.data(), 1);
                     std::ostringstream filename;
                     filename << "output/out00" << itr+1 << ".png";
                     std::cerr << "trying to write image to " << filename.str() << std::endl;

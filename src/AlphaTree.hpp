@@ -58,7 +58,7 @@ using namespace pmt;
 #define CHKRNG(var, a, b) ((var >= a) && (var < b))
 #define QUANTIZE_RANK(rank, binsize) (uint8_t)((rank) / (binsize))
 
-#define RGB_FILTER 0
+#define RGB_FILTER 1
 
 template <class Pixel> class AlphaNode {
   public:
@@ -117,7 +117,7 @@ template <class Pixel> class AlphaTree {
 
     void AlphaFilter(Pixel *outimg, float alpha);
     void AlphaFilter(double *outimg, double alpha);
-    void AreaFilter(double *outimg, double area);
+    void AreaFilter(Pixel *outimg, double area);
 
     void printTree() const;
     void printGraph(const uint8_t *isVisited, const uint8_t *edge, const Pixel *img) const;

@@ -36,6 +36,7 @@ NumberOfThreads=1
 
 # AlphaTreeAlgorithm=FloodHierHeapQueue
 AlphaTreeAlgorithm=Unionfind
+# AlphaTreeAlgorithm=HybridParallel
 
 BitDepth=16
 UseTreeSizeEstimation=1
