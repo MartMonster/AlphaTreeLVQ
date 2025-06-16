@@ -118,6 +118,7 @@ template <class Pixel> class AlphaTree {
     void AlphaFilter(Pixel *outimg, float alpha);
     void AlphaFilter(double *outimg, double alpha);
     void AreaFilter(Pixel *outimg, double area);
+    void AreaFilter(double *outimg, double area);
 
     void printTree() const;
     void printGraph(const uint8_t *isVisited, const uint8_t *edge, const Pixel *img) const;

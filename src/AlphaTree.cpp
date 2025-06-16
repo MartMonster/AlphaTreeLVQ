@@ -178,6 +178,10 @@ template <class Pixel> void AlphaTree<Pixel>::AlphaFilter(Pixel *outimg, float a
 #if RGB_FILTER
             const auto pMax = std::numeric_limits<Pixel>::max();
             const auto pMin = std::numeric_limits<Pixel>::min();
+            // outimg[i] = 65535;
+            // outimg[i + imgSize] = 65535;
+            // outimg[i + 2 * imgSize] = 65535;
+
             outimg[i] = CLIP(_node[index].rgb[0] / (float)_node[index].area, pMin, pMax);
             outimg[i + imgSize] = CLIP(_node[index].rgb[1] / (float)_node[index].area, pMin, pMax);
             outimg[i + 2 * imgSize] = CLIP(_node[index].rgb[2] / (float)_node[index].area, pMin, pMax);
@@ -784,7 +788,7 @@ void AlphaTree<Pixel>::compute_dimg_hhpq(float *dimg, ImgIdx *dhist, const Pixel
     if (_connectivity == 4) {
         for (ImgIdx i = 0; i < _height - 1; i++) {
             for (ImgIdx j = 0; j < _width - 1; j++) {
-        // std::cout << "hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm" << std::endl;
+                // std::cout << "hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm" << std::endl;
                 dimg[dimgidx] = _pixelDissim.computeDissimilarity(imgidx, imgidx + _width);
                 dhist[HHPQ::alphaToLevel(dimg[dimgidx++], a)]++;
                 dimg[dimgidx] = _pixelDissim.computeDissimilarity(imgidx, imgidx + 1);
@@ -2568,7 +2572,7 @@ void AlphaTree<Pixel>::runFloodHHPQ(ImgIdx startingPixel, const Pixel *img, floa
 #if RUN_FANCY_VIS_FOR_DEBUG
                 printVisit(p, currentLevel);
                 queue->print();
-                printAll(isVisited, (const uint8_t*) QItem::EDGE_CONNECTED, img);
+                printAll(isVisited, (const uint8_t *)QItem::EDGE_CONNECTED, img);
                 std::getchar();
 #endif
 

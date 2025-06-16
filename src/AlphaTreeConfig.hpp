@@ -21,6 +21,7 @@ class AlphaTreeConfig {
         int bitdepth;
         int tse;
         int connectivity;
+        int alphaFilter;
         int numitr;
         int iparam1;
         int iparam2;

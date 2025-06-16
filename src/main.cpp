@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
     const auto &nthr = params.numthreads;
     const auto &nitr = params.numitr;
     const auto &tse = params.tse;
+    const auto &alphaFilter = params.alphaFilter;
     const auto &iparam1 = params.iparam1;
     const auto &fparam1 = params.fparam1;
     const auto &fparam2 = params.fparam2;
@@ -43,10 +44,12 @@ int main(int argc, char **argv) {
     if (!params.UseRandomlyGeneratedImages)
         std::cout << "Image file name: " << params.imageFileName << std::endl;
     std::cout << "=======================================================================" << std::endl;
-    std::cout << "========== imgsize = " << height << " x " << width << " (" << bitdepth << " bits, " << nch << " ch, " << params.connectivity << "N) ================" << std::endl;
+    std::cout << "========== imgsize = " << height << " x " << width << " (" << bitdepth << " bits, " << nch << " ch, "
+              << params.connectivity << "N) ================" << std::endl;
     std::cout << "=======================================================================" << std::endl;
     std::cout << "-----------------------------------------------------------------------------------" << std::endl;
-    std::cout << algCode << " Running " << alphatreeConfig.getAlphaTreeAlgorithmName(algCode) << " (" << nthr << " threads)" << std::endl;
+    std::cout << algCode << " Running " << alphatreeConfig.getAlphaTreeAlgorithmName(algCode) << " (" << nthr
+              << " threads)" << std::endl;
     std::cout << "-----------------------------------------------------------------------------------" << std::endl;
     std::vector<double> runtimes;
 
@@ -108,7 +111,8 @@ int main(int argc, char **argv) {
                     pMin = std::min(pMin, pixel);
                 }
 
-                std::cout << "reduceImageBitdepth - BitDepth = params.bitdepth = " << params.bitdepth << " / DR = " << pMin << " - " << pMax << std::endl;
+                std::cout << "reduceImageBitdepth - BitDepth = params.bitdepth = " << params.bitdepth
+                          << " / DR = " << pMin << " - " << pMax << std::endl;
             }
 
             uint16_t maxVal = *std::max_element(image.begin(), image.end());
@@ -118,13 +122,12 @@ int main(int argc, char **argv) {
                 tree.BuildAlphaTree(image.data(), height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1,
                                     fparam2, iparam1);
 
-
                 const bool rgbFilter = true;
                 if (rgbFilter) {
-                    tree.AlphaFilter(image.data(), 170);
+                    tree.AlphaFilter(image.data(), alphaFilter);
                     // tree.AreaFilter(image.data(), 1);
                     std::ostringstream filename;
-                    filename << "output/out00" << itr+1 << ".png";
+                    filename << "output/output.png";
                     std::cerr << "trying to write image to " << filename.str() << std::endl;
                     PNGCodec::imwrite(image, w, h, ch, filename.str());
                     std::cerr << "wrote image to " << filename.str() << std::endl;
@@ -140,7 +143,8 @@ int main(int argc, char **argv) {
                 tree.BuildAlphaTree(image8.data(), height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1,
                                     fparam2, iparam1);
                 for (size_t i = 0; i < image.size() && itr > 0; i++) {
-                    if (image8[i] > 0) std::cout << i << ": " << (uint16_t) image8[i] << std::endl;
+                    if (image8[i] > 0)
+                        std::cout << i << ": " << (uint16_t)image8[i] << std::endl;
                 }
                 tEnd = get_wall_time();
 
@@ -152,7 +156,8 @@ int main(int argc, char **argv) {
         }
 
         auto runtime = tEnd - tStart;
-        std::cout << "-------------------Run " << itr+1 << "/" << nitr << ": " << runtime << "------------------" << std::endl;
+        std::cout << "-------------------Run " << itr + 1 << "/" << nitr << ": " << runtime << "------------------"
+                  << std::endl;
         runtimes.push_back(runtime);
     }
 
@@ -161,7 +166,8 @@ int main(int argc, char **argv) {
         double imgsize = (double)(width * height);
 
         std::cout << "================== Summary ==================" << std::endl;
-        std::cout << "Processing speed: " << (imgsize / minRuntime) * 1e-6 << "Mpix/s / Memory use "  << (double)max_memuse / imgsize << "B/pix" << std::endl;
+        std::cout << "Processing speed: " << (imgsize / minRuntime) * 1e-6 << "Mpix/s / Memory use "
+                  << (double)max_memuse / imgsize << "B/pix" << std::endl;
         std::cout << "=============================================" << std::endl;
     }
 

@@ -79,6 +79,7 @@ std::optional<AlphaTreeConfig::AlphaTreeParameters> AlphaTreeConfig::load(int ar
     params.tse = getInteger("UseTreeSizeEstimation");
     params.connectivity = getInteger("Connectivity");
     params.numitr = getInteger("NumberOfTestIterations");
+    params.alphaFilter = getInteger("AlphaFilter");
     params.iparam1 = getInteger("ParameterInteger1");
     params.iparam2 = getInteger("ParameterInteger2");
     params.iparam3 = getInteger("ParameterInteger3");
