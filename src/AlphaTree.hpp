@@ -58,18 +58,15 @@ using namespace pmt;
 #define CHKRNG(var, a, b) ((var >= a) && (var < b))
 #define QUANTIZE_RANK(rank, binsize) (uint8_t)((rank) / (binsize))
 
-#define RGB_FILTER 1
 
 template <class Pixel> class AlphaNode {
   public:
     ImgIdx area = 0;
     float alpha = std::numeric_limits<Pixel>::infinity();
     float sumPix = 0.0;
-#if RGB_FILTER
     float rgb[3] = {
         0.f,
     };
-#endif
     Pixel minPix = std::numeric_limits<Pixel>::max();
     Pixel maxPix = std::numeric_limits<Pixel>::min();
     ImgIdx parentIdx = ROOTIDX;
@@ -112,10 +109,10 @@ template <class Pixel> class AlphaTree {
     void clear();
 
     void BuildAlphaTree(const Pixel *img, int height_in, int width_in, int channel_in, std::string dMetric,
-                        int connectivity_in, int algorithm, int numthreads, int tse, double fparam1 = 0.0,
+                        int connectivity_in, int algorithm, int numthreads, int tse, bool rgb, double fparam1 = 0.0,
                         double fparam2 = 0.0, int iparam1 = 0);
 
-    void AlphaFilter(Pixel *outimg, float alpha);
+    void AlphaFilter(Pixel *outimg, float alpha, bool rgb);
     void AlphaFilter(double *outimg, double alpha);
     void AreaFilter(Pixel *outimg, double area);
     void AreaFilter(double *outimg, double area);
@@ -141,7 +138,7 @@ template <class Pixel> class AlphaTree {
     void FloodHierarQueue(const Pixel *img);
     void FloodLadderQueue(const Pixel *img, int thres = 64);
     void FloodHierarHeapQueueNoCache(const Pixel *img, double a = 12.0, double r = 0.5, int listsize = 12);
-    void FloodHierarHeapQueue(const Pixel *img, float a = 12.0, float r = 0.5, int listsize = 12);
+    void FloodHierarHeapQueue(const Pixel *img, bool rgb, float a = 12.0, float r = 0.5, int listsize = 12);
     void FloodHierHeapQueueHisteq(const Pixel *img, int listsize = 12, int a = 0);
     void FloodTrieHypergraph(const Pixel *img);
     void FloodHierarQueueHypergraph(const Pixel *img);
@@ -179,7 +176,7 @@ template <class Pixel> class AlphaTree {
 
     void runFloodHHPQ(ImgIdx startingPixel, const Pixel *img, float a, float r, int listsize, ImgIdx imgSize,
                       ImgIdx nredges, ImgIdx dimgSize, uint64_t numLevels, const ImgIdx *dhist, const float *dimg,
-                      const uint8_t *isAvailable);
+                      const uint8_t *isAvailable, bool rgb);
 
     void markRedundant(ImgIdx imgIdx, ImgIdx eIdx, uint8_t *edgeStatus, ImgIdx *queuedEdges,
                        uint8_t *numQueuedEdges) const;

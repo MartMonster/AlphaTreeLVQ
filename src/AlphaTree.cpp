@@ -47,11 +47,9 @@ template <class Pixel> void AlphaNode<Pixel>::add(const AlphaNode &q) {
     this->sumPix += (float)q.sumPix;
     this->minPix = _min(this->minPix, q.minPix);
     this->maxPix = _max(this->maxPix, q.maxPix);
-#if RGB_FILTER
     this->rgb[0] += q.rgb[0];
     this->rgb[1] += q.rgb[1];
     this->rgb[2] += q.rgb[2];
-#endif
 }
 
 template <class Pixel> void AlphaNode<Pixel>::add(const Pixel &pix_val) {
@@ -89,7 +87,7 @@ template <class Pixel> void AlphaNode<Pixel>::print(AlphaNode *_node, int headin
 
 template <class Pixel>
 void AlphaTree<Pixel>::BuildAlphaTree(const Pixel *img, int height_in, int width_in, int channel_in,
-                                      std::string dMetric, int connectivity_in, int algorithm, int numthreads, int tse,
+                                      std::string dMetric, int connectivity_in, int algorithm, int numthreads, int tse, bool rgb,
                                       double fparam1, double fparam2, int iparam1) {
     this->_height = (ImgIdx)height_in;
     this->_width = (ImgIdx)width_in;
@@ -136,7 +134,7 @@ void AlphaTree<Pixel>::BuildAlphaTree(const Pixel *img, int height_in, int width
     else if (algorithm == alphatreeConfig.getAlphaTreeAlgorithmCode("FloodHierHeapQueueNoCache"))
         FloodHierarHeapQueueNoCache(img, fparam1, fparam2, iparam1);
     else if (algorithm == alphatreeConfig.getAlphaTreeAlgorithmCode("FloodHierHeapQueue"))
-        FloodHierarHeapQueue(img, fparam1, fparam2, iparam1);
+        FloodHierarHeapQueue(img, rgb, fparam1, fparam2, iparam1);
     else if (algorithm == alphatreeConfig.getAlphaTreeAlgorithmCode("FloodHierHeapQueueHisteq"))
         FloodHierHeapQueueHisteq(img);
     else if (algorithm == alphatreeConfig.getAlphaTreeAlgorithmCode("FloodLadderQueue"))
@@ -152,7 +150,7 @@ void AlphaTree<Pixel>::BuildAlphaTree(const Pixel *img, int height_in, int width
     }
 }
 
-template <class Pixel> void AlphaTree<Pixel>::AlphaFilter(Pixel *outimg, float alpha) {
+template <class Pixel> void AlphaTree<Pixel>::AlphaFilter(Pixel *outimg, float alpha, bool rgb) {
     for (int i = 0; i < _curSize; i++)
         _node[i]._rootIdx = _node[i].parentIdx;
 
@@ -175,19 +173,19 @@ template <class Pixel> void AlphaTree<Pixel>::AlphaFilter(Pixel *outimg, float a
         }
 
         if (index >= 0 && index < _curSize) {
-#if RGB_FILTER
-            const auto pMax = std::numeric_limits<Pixel>::max();
-            const auto pMin = std::numeric_limits<Pixel>::min();
-            // outimg[i] = 65535;
-            // outimg[i + imgSize] = 65535;
-            // outimg[i + 2 * imgSize] = 65535;
+            if (rgb) {
+                const auto pMax = std::numeric_limits<Pixel>::max();
+                const auto pMin = std::numeric_limits<Pixel>::min();
+                // outimg[i] = 65535;
+                // outimg[i + imgSize] = 65535;
+                // outimg[i + 2 * imgSize] = 65535;
 
-            outimg[i] = CLIP(_node[index].rgb[0] / (float)_node[index].area, pMin, pMax);
-            outimg[i + imgSize] = CLIP(_node[index].rgb[1] / (float)_node[index].area, pMin, pMax);
-            outimg[i + 2 * imgSize] = CLIP(_node[index].rgb[2] / (float)_node[index].area, pMin, pMax);
-#else
-            outimg[i] = (double)_node[index].area;
-#endif
+                outimg[i] = CLIP(_node[index].rgb[0] / (float)_node[index].area, pMin, pMax);
+                outimg[i + imgSize] = CLIP(_node[index].rgb[1] / (float)_node[index].area, pMin, pMax);
+                outimg[i + 2 * imgSize] = CLIP(_node[index].rgb[2] / (float)_node[index].area, pMin, pMax);
+            } else {
+                outimg[i] = (double)_node[index].area;
+            }
         }
     }
 }
@@ -2489,7 +2487,7 @@ FLOOD_END:
     Free(isAvailable);
 }
 
-template <class Pixel> void AlphaTree<Pixel>::FloodHierarHeapQueue(const Pixel *img, float a, float r, int listsize) {
+template <class Pixel> void AlphaTree<Pixel>::FloodHierarHeapQueue(const Pixel *img, bool rgb, float a, float r, int listsize) {
     assert(_connectivity == 4 || _connectivity == 8 || _connectivity == 12);
     clear();
     const ImgIdx imgSize = _width * _height;
@@ -2515,7 +2513,7 @@ template <class Pixel> void AlphaTree<Pixel>::FloodHierarHeapQueue(const Pixel *
     _node = (AlphaNode<Pixel> *)Malloc((size_t)_maxSize * sizeof(AlphaNode<Pixel>));
 
     ImgIdx startingPixel = 0;
-    runFloodHHPQ(startingPixel, img, a, r, listsize, imgSize, nredges, dimgSize, numLevels, dhist, dimg, isAvailable);
+    runFloodHHPQ(startingPixel, img, a, r, listsize, imgSize, nredges, dimgSize, numLevels, dhist, dimg, isAvailable, rgb);
 
     const bool sortNodePostConstruction = false;
     if (sortNodePostConstruction)
@@ -2550,7 +2548,7 @@ void AlphaTree<Pixel>::markRedundant(ImgIdx imgIdx, ImgIdx eIdx, uint8_t *edgeSt
 template <class Pixel>
 void AlphaTree<Pixel>::runFloodHHPQ(ImgIdx startingPixel, const Pixel *img, float a, float r, int listsize,
                                     ImgIdx imgSize, ImgIdx nredges, ImgIdx dimgSize, uint64_t numLevels,
-                                    const ImgIdx *dhist, const float *dimg, const uint8_t *isAvailable) {
+                                    const ImgIdx *dhist, const float *dimg, const uint8_t *isAvailable, bool rgb) {
     uint8_t *isVisited = (uint8_t *)Calloc((size_t)((imgSize)));
     HHPQ *queue = new HHPQ(dhist, numLevels, nredges, isVisited, a, listsize, r);
 
@@ -2621,22 +2619,22 @@ void AlphaTree<Pixel>::runFloodHHPQ(ImgIdx startingPixel, const Pixel *img, floa
                 currentLevel = queue->front().alpha;
                 const ImgIdx newNodeIdx = _curSize++;
                 _node[newNodeIdx] = AlphaNode<Pixel>(img[p], queue->front().alpha, stackTop);
-#if RGB_FILTER
-                _node[newNodeIdx].rgb[0] = img[p];
-                _node[newNodeIdx].rgb[1] = img[p + imgSize];
-                _node[newNodeIdx].rgb[2] = img[p + 2 * imgSize];
-#endif
+                if (rgb) {
+                    _node[newNodeIdx].rgb[0] = img[p];
+                    _node[newNodeIdx].rgb[1] = img[p + imgSize];
+                    _node[newNodeIdx].rgb[2] = img[p + 2 * imgSize];
+                }
                 prevTop = stackTop;
                 stackTop = newNodeIdx;
 
                 if (currentLevel > 0) {
                     const ImgIdx singletonNodeIdx = _curSize++;
                     _node[singletonNodeIdx] = AlphaNode<Pixel>(img[p], 0.0, newNodeIdx);
-#if RGB_FILTER
-                    _node[singletonNodeIdx].rgb[0] = img[p];
-                    _node[singletonNodeIdx].rgb[1] = img[p + imgSize];
-                    _node[singletonNodeIdx].rgb[2] = img[p + 2 * imgSize];
-#endif
+                    if (rgb) {
+                        _node[singletonNodeIdx].rgb[0] = img[p];
+                        _node[singletonNodeIdx].rgb[1] = img[p + imgSize];
+                        _node[singletonNodeIdx].rgb[2] = img[p + 2 * imgSize];
+                    }
                     _parentAry[p] = singletonNodeIdx;
                 } else
                     _parentAry[p] = stackTop;
@@ -2644,20 +2642,20 @@ void AlphaTree<Pixel>::runFloodHHPQ(ImgIdx startingPixel, const Pixel *img, floa
                 if (currentLevel > 0) {
                     const ImgIdx singletonNodeIdx = _curSize++;
                     _node[singletonNodeIdx] = AlphaNode<Pixel>(img[p], 0.0, stackTop);
-#if RGB_FILTER
-                    _node[singletonNodeIdx].rgb[0] = img[p];
-                    _node[singletonNodeIdx].rgb[1] = img[p + imgSize];
-                    _node[singletonNodeIdx].rgb[2] = img[p + 2 * imgSize];
-#endif
+                    if (rgb) {
+                        _node[singletonNodeIdx].rgb[0] = img[p];
+                        _node[singletonNodeIdx].rgb[1] = img[p + imgSize];
+                        _node[singletonNodeIdx].rgb[2] = img[p + 2 * imgSize];
+                    }
                     _node[stackTop].add(_node[singletonNodeIdx]);
                     _parentAry[p] = singletonNodeIdx;
                 } else {
                     connectPix2Node(p, img[p], stackTop);
-#if RGB_FILTER
-                    _node[stackTop].rgb[0] += img[p];
-                    _node[stackTop].rgb[1] += img[p + imgSize];
-                    _node[stackTop].rgb[2] += img[p + 2 * imgSize];
-#endif
+                    if (rgb) {
+                        _node[stackTop].rgb[0] += img[p];
+                        _node[stackTop].rgb[1] += img[p + imgSize];
+                        _node[stackTop].rgb[2] += img[p + 2 * imgSize];
+                    }
                 }
                 if (_node[stackTop].area == imgSize)
                     break;

@@ -1,5 +1,9 @@
-ImageFileName=images/schiphol.tiff
-AlphaFilter=2000
+# ImageFileName=images/DJI_20240531163530_0019_MS_NIR.TIF
+# ImageFileName=images/DJI_20240531164627_0024_MS_NIR.TIF
+# ImageFileName=images/normal.png
+ImageFileName=images/texel.tiff
+# ImageFileName=images/schiphol.tiff
+AlphaFilter=1200
 
 
 LogFileName=test

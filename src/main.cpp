@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
                 RandGenImage::randomize32(image, width, height, bitdepth);
                 AlphaTree<uint32_t> tree;
                 tStart = get_wall_time();
-                tree.BuildAlphaTree(image, height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1, fparam2,
+                tree.BuildAlphaTree(image, height, width, nch, dMetric, conn, algCode, nthr, tse, ch==3, fparam1, fparam2,
                                     iparam1);
                 tEnd = get_wall_time();
                 Free(image);
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
                 RandGenImage::randomize16(image, width, height, bitdepth, nch);
                 AlphaTree<uint16_t> tree;
                 tStart = get_wall_time();
-                tree.BuildAlphaTree(image, height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1, fparam2,
+                tree.BuildAlphaTree(image, height, width, nch, dMetric, conn, algCode, nthr, tse, ch==3, fparam1, fparam2,
                                     iparam1);
                 tEnd = get_wall_time();
                 Free(image);
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
                 RandGenImage::randomize8(image, width, height, bitdepth, nch);
                 AlphaTree<uint8_t> tree;
                 tStart = get_wall_time();
-                tree.BuildAlphaTree(image, height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1, fparam2,
+                tree.BuildAlphaTree(image, height, width, nch, dMetric, conn, algCode, nthr, tse, ch==3, fparam1, fparam2,
                                     iparam1);
                 tEnd = get_wall_time();
                 Free(image);
@@ -119,12 +119,12 @@ int main(int argc, char **argv) {
             if ((int)maxVal > (int)255) {
                 AlphaTree<uint16_t> tree;
                 tStart = get_wall_time();
-                tree.BuildAlphaTree(image.data(), height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1,
+                tree.BuildAlphaTree(image.data(), height, width, nch, dMetric, conn, algCode, nthr, tse, ch==3, fparam1,
                                     fparam2, iparam1);
 
                 const bool rgbFilter = true;
                 if (rgbFilter) {
-                    tree.AlphaFilter(image.data(), alphaFilter);
+                    tree.AlphaFilter(image.data(), alphaFilter, ch == 3);
                     // tree.AreaFilter(image.data(), 1);
                     std::ostringstream filename;
                     filename << "output/output.png";
@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
                     image8[i] = (uint8_t)image[i];
                 AlphaTree<uint8_t> tree;
                 tStart = get_wall_time();
-                tree.BuildAlphaTree(image8.data(), height, width, nch, dMetric, conn, algCode, nthr, tse, fparam1,
+                tree.BuildAlphaTree(image8.data(), height, width, nch, dMetric, conn, algCode, nthr, tse, ch==3, fparam1,
                                     fparam2, iparam1);
                 for (size_t i = 0; i < image.size() && itr > 0; i++) {
                     if (image8[i] > 0)
