@@ -1,5 +1,4 @@
-import sys
-import cv2
+import sys, cv2, os
 import numpy as np
 
 if (len(sys.argv) != 2):
@@ -23,7 +22,7 @@ def apply_clahe(image_8bit):
     # If grayscale
     if len(image_8bit.shape) == 2:
         equalized = clahe.apply(image_8bit)
-        return (equalized.astype(np.uint16) * 256)
+        return (equalized.astype(np.uint16) * 257)
 
     # If color image (apply CLAHE to each channel)
     channels = cv2.split(image_8bit)
@@ -31,9 +30,9 @@ def apply_clahe(image_8bit):
     merged = cv2.merge(equalized_channels)
 
     # Convert back to 16-bit
-    return (merged.astype(np.uint16) * 256)
+    return (merged.astype(np.uint16) * 257)
 
 img_normalized_16bit = apply_clahe(img_8bit)
 cv2.imwrite("output/normalized_16bpc.png", img_normalized_16bit)
 
-#TODO: write config file and execute alphatree algorithm from this program
+os.system("./AlphaTree config_test.txt | tee -a output/out_test.txt")

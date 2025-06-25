@@ -4,9 +4,10 @@
 # ImageFileName=images/normal.png
 # ImageFileName=images/dark.png
 # ImageFileName=images/bladrol.png
-ImageFileName=images/texel.tiff
+# ImageFileName=images/texel.tiff
 # ImageFileName=images/schiphol.tiff
-AlphaFilter=1200
+ImageFileName=output/normalized_16bpc.png
+AlphaFilter=1600
 
 
 LogFileName=test
