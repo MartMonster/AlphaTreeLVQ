@@ -7,7 +7,7 @@
 # ImageFileName=images/texel.tiff
 # ImageFileName=images/schiphol.tiff
 ImageFileName=output/normalized_16bpc.png
-AlphaFilter=1600
+AlphaFilter=1000
 
 
 LogFileName=test
