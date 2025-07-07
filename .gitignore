@@ -24,3 +24,5 @@ analysis.txt
 gmon.out
 AlphaTree
 Croptimal/*
+__pycache__/*
+*.pyc
