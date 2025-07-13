@@ -82,11 +82,10 @@ def trainImage(lvq, img, labels):
                 # only train if the square is not black
                 if square.sum() > 0:
                     loss.append(lvq.train(torch.from_numpy(square), torch.tensor([label])))
-        print(f"({count}/{len(labels)}) loss: {loss[-1].item()}, label: {label}")
+        print(f"({count+1}/{len(labels)}) loss: {loss[-1].item()}, label: {label}")
         
     loss = [item.item() for item in loss]
     return loss
-# plt.show()
 
 lvq = gmlvq()
 features = 16*16*3 # 16x16 RGB squares
@@ -109,7 +108,6 @@ for count, file_path in enumerate(directory.glob("*.txt")):
 lvq.save('gmlvq-2025-07-13.pt')
 
 plt.figure(figsize=(10, 10))
-# extract the items from the loss list
 plt.plot(loss)
 plt.show()
 

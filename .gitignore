@@ -26,3 +26,8 @@ AlphaTree
 Croptimal/*
 __pycache__/*
 *.pyc
+out_hq.txt
+out_SENTINEL_3ch_serial.txt
+out_test.txt
+Croptimal.zip
+*.TIF
