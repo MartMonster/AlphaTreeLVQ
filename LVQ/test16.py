@@ -3,6 +3,8 @@
 ds = 24           # downscale factor for probability smoothing
 p_threshold = 0.3 # (average) probability threshold
 
+plot = True # plot the results
+
 import torch
 import sys
 from pathlib import Path
@@ -27,17 +29,29 @@ def parse_labels(file_path):
             parsed_data.append((label, bbox))
     return parsed_data
 
+ground = torch.load('plant-segmentation/pix-classifier-alvq-2025-07-09.pt', weights_only=False)
+
 net = torch.load('gmlvq-2025-07-13.pt', weights_only=False)
 
-img = cv2.imread('../Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/test/2d6a8e49-77d9-4660-9a51-39827ebe7408.png')
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-labels = parse_labels("../Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/test/2d6a8e49-77d9-4660-9a51-39827ebe7408.txt")
+img = cv2.imread('../Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/test/4e8ef493-3884-4645-82c6-4291a576684d.png')
+labels = parse_labels("../Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/test/4e8ef493-3884-4645-82c6-4291a576684d.txt")
 
 def testImage(lvq, img, labels):
-    error = []
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    rgb_feats = (img[..., 0:3].astype(np.float32) * (1/255)).reshape(-1, 3)
 
     width = img.shape[1]
     height = img.shape[0]
+
+    with torch.no_grad():
+        scalar = ground.probabilities(torch.from_numpy(rgb_feats))
+    scalar = scalar[..., 1].reshape(img.shape[0:2])
+    # scalar_orig = scalar
+    scalar = cv2.resize(scalar.numpy(), (width // ds, height // ds), interpolation=cv2.INTER_AREA)
+    scalar = cv2.resize(scalar, (width, height), interpolation=cv2.INTER_LINEAR)
+    img[scalar < p_threshold, :] = 0
+
+    errors = []
     
     for count, (label, bbox) in enumerate(labels):
         x_center, y_center, box_width, box_height = bbox
@@ -66,26 +80,28 @@ def testImage(lvq, img, labels):
                 if square.sum() > 0:
                     label_pred = lvq.forward(torch.from_numpy(square))
                     if label_pred.item() != label:
-                        error.append((label, label_pred.item(), (x, y, x + 16, y + 16)))
-    return error
+                        errors.append((label, label_pred.item(), (x, y, x + 16, y + 16)))
+    if plot:
+        fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(20, 10))
+        ax0.imshow(img)
+        for label, bbox in labels:
+            x_center, y_center, box_width, box_height = bbox
+            x_center = int(x_center * img.shape[1])
+            y_center = int(y_center * img.shape[0])
+            box_width = int(box_width * img.shape[1])
+            box_height = int(box_height * img.shape[0])
+            x1 = int(x_center - box_width / 2)
+            y1 = int(y_center - box_height / 2)
+            rect = plt.Rectangle((x1, y1), box_width, box_height, linewidth=1, edgecolor='r', facecolor='none')
+            color = 'white' if not label else 'yellow'
+            ax0.text(x1, y1 + 100, str(label), color=color, fontsize=12)
+            ax0.add_patch(rect)
+        ax1.imshow(img)
+        for error in errors:
+            _, _, (x1, y1, x2, y2) = error
+            rect = plt.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='r', facecolor='none')
+            ax1.add_patch(rect)
+        plt.show()
+    return errors
 
-fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(20, 10))
-ax0.imshow(img)
-for label, bbox in labels:
-    x_center, y_center, box_width, box_height = bbox
-    x_center = int(x_center * img.shape[1])
-    y_center = int(y_center * img.shape[0])
-    box_width = int(box_width * img.shape[1])
-    box_height = int(box_height * img.shape[0])
-    x1 = int(x_center - box_width / 2)
-    y1 = int(y_center - box_height / 2)
-    rect = plt.Rectangle((x1, y1), box_width, box_height, linewidth=1, edgecolor='r', facecolor='none')
-    color = 'white' if not label else 'yellow'
-    ax0.text(x1, y1 + 100, str(label), color=color, fontsize=12)
-    ax0.add_patch(rect)
-ax1.imshow(img)
-for error in testImage(net, img, labels):
-    _, _, (x1, y1, x2, y2) = error
-    rect = plt.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='r', facecolor='none')
-    ax1.add_patch(rect)
-plt.show()
+testImage(net, img, labels)
