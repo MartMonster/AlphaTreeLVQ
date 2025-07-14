@@ -32,7 +32,10 @@ net = torch.load('plant-segmentation/pix-classifier-alvq-2025-07-09.pt', weights
 
 # img = cv2.imread('../Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/train/2ec83b5a-f1ad-4dae-bb33-773f1eee7923.png')
 # labels = parse_labels("../Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/train/2ec83b5a-f1ad-4dae-bb33-773f1eee7923.txt")
-
+lowerH = 30
+upperH = 50
+lowerS = 70
+upperS = 230
 def train2d_histogram(lvq, img, labels):
     loss = []
     for count, (label, bbox) in enumerate(labels):
@@ -54,11 +57,13 @@ def train2d_histogram(lvq, img, labels):
         hls = cv2.cvtColor(box, cv2.COLOR_BGR2HLS)
         # make histogram of H and S values
         hist = cv2.calcHist([hls], [0, 2], None, [180, 256], [0, 180, 0, 256])
+        # crop the histogram to the area of interest
+        hist = hist[lowerH:upperH, lowerS:upperS]
         loss.append(lvq.train(torch.from_numpy(hist.flatten().reshape(1, -1)), torch.tensor([label])))
     return loss
 
 lvq = gmlvq()
-features = 256*180 # 180x256 2D histogram
+features = (upperH - lowerH) * (upperS - lowerS) # 2D histogram features
 prototypes = 2
 initial_protos = torch.randn(prototypes, features)
 prototype_labels = [0, 1]
@@ -123,15 +128,18 @@ def make_histograms(img, labels):
 # hist_0_norm = h_0 / (h_0.sum() + eps)
 # hist_1_norm = h_1 / (h_1.sum() + eps)
 # diff = hist_0_norm - hist_1_norm
+# # only select area of interest
+# diff = diff[lowerH:upperH, lowerS:upperS]
 # plt.figure(figsize=(10, 10))
 # plt.imshow(diff, origin='lower', aspect='auto',
-#            extent=[0, 256, 0, 180], cmap='bwr', vmin=-2e-4, vmax=2e-4)
+#            extent=[lowerS, upperS, lowerH, upperH], cmap='bwr', vmin=-np.max(np.abs(diff)), vmax=np.max(np.abs(diff)))
 # plt.xlabel('Saturation')
 # plt.ylabel('Hue')
 # plt.title('Normalized Histogram Difference (Label 1 - Label 0)')
 # plt.colorbar(label='Probability Difference')
 # plt.tight_layout()
 # plt.show()
+
 # log_h_0 = np.log1p(h_0)
 # log_h_1 = np.log1p(h_1)
 # plt.figure(figsize=(20, 10))
