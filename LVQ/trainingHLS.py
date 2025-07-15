@@ -82,7 +82,7 @@ for count, file_path in enumerate(directory.glob("*.txt")):
     loss.extend(train2d_histogram(lvq, img, labels))
 date = datetime.datetime.now().strftime("%Y-%m-%d")
 print(f"Saving model as gmlvq-2d-hist-{date}.pt")
-lvq.save(f'gmlvq-{date}.pt')
+lvq.save(f'gmlvq-2d-hist-{date}.pt')
 
 def make_histograms(img, labels):
     hist_0 = np.zeros((180, 256), dtype=np.float32)
