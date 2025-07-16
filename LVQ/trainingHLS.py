@@ -54,7 +54,7 @@ def train2d_histogram(lvq, img, labels):
         if box.shape[0] < 1 or box.shape[1] < 1:
             continue
         # convert box to HLS
-        hls = cv2.cvtColor(box, cv2.COLOR_BGR2HLS)
+        hls = cv2.cvtColor(box, cv2.COLOR_RGB2HLS)
         # make histogram of H and S values
         hist = cv2.calcHist([hls], [0, 2], None, [180, 256], [0, 180, 0, 256])
         # crop the histogram to the area of interest
@@ -78,11 +78,28 @@ for count, file_path in enumerate(directory.glob("*.txt")):
     if not img_path.exists():
         continue
     img = cv2.imread(str(img_path))
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    rgb_feats = (img[..., 0:3].astype(np.float32) * (1/255)).reshape(-1, 3)
+    with torch.no_grad():
+        scalar = net.probabilities(torch.from_numpy(rgb_feats))
+    width = img.shape[1]
+    height = img.shape[0]
+    scalar = scalar[..., 1].reshape(img.shape[0:2])
+    scalar = cv2.resize(scalar.numpy(), (width // ds, height // ds), interpolation=cv2.INTER_AREA)
+    scalar = cv2.resize(scalar, (width, height), interpolation=cv2.INTER_LINEAR)
+    img[scalar < p_threshold, :] = 0
+
     labels = parse_labels(file_path.with_suffix('.txt'))
     loss.extend(train2d_histogram(lvq, img, labels))
 date = datetime.datetime.now().strftime("%Y-%m-%d")
 print(f"Saving model as gmlvq-2d-hist-{date}.pt")
 lvq.save(f'gmlvq-2d-hist-{date}.pt')
+plt.plot(loss)
+plt.xlabel('Training Step')
+plt.ylabel('Loss')
+plt.title('Training Loss Over Steps')
+plt.show()
 
 def make_histograms(img, labels):
     hist_0 = np.zeros((180, 256), dtype=np.float32)
