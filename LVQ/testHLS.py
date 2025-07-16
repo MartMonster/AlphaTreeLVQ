@@ -63,11 +63,11 @@ def test_2d_histogram(lvq, img, labels):
 
 plot = False
 
-lvq = torch.load('gmlvq-2d-hist-2025-07-15.pt', weights_only=False)
+lvq = torch.load('gmlvq-2d-hist-2025-07-16.pt', weights_only=False)
 errors = []
 ones = 0
 zeros = 0
-directory = Path("../Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/train")
+directory = Path("../Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/test")
 for count, file_path in enumerate(directory.glob("*.txt")):
     print(f"Processing {file_path.name} ({count + 1}/{len(list(directory.glob('*.txt')))})")
     img_path = file_path.with_suffix('.png')
