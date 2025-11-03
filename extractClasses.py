@@ -36,9 +36,13 @@ for count, file_path in enumerate(directory.glob("*.txt")):
         y2 = int(y_center + box_height / 2)
 
         box = img[y1:y2, x1:x2]
-        save_dir = directory / f"class_{label}"
+        save_dir = directory / f"sobel_class_{label}"
         save_dir.mkdir(exist_ok=True)
         save_path = save_dir / f"{file_path.stem}_{index}.png"
         if box.shape[0] < 1 or box.shape[1] < 1:
             continue
-        cv2.imwrite(str(save_path), box)
+        # apply sobel filter to the box
+        sobelx = cv2.Sobel(box, cv2.CV_64F, 1, 0, ksize=5)
+        sobely = cv2.Sobel(box, cv2.CV_64F, 0, 1, ksize=5)
+        sobel = cv2.magnitude(sobelx, sobely)
+        cv2.imwrite(str(save_path), sobel)
