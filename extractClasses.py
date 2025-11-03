@@ -1,5 +1,6 @@
 from pathlib import Path
 import cv2
+import numpy as np
 
 def parse_labels(file_path):
     parsed_data = []
@@ -36,13 +37,19 @@ for count, file_path in enumerate(directory.glob("*.txt")):
         y2 = int(y_center + box_height / 2)
 
         box = img[y1:y2, x1:x2]
-        save_dir = directory / f"sobel_class_{label}"
+        save_dir = directory / f"open_class_{label}"
         save_dir.mkdir(exist_ok=True)
         save_path = save_dir / f"{file_path.stem}_{index}.png"
         if box.shape[0] < 1 or box.shape[1] < 1:
             continue
-        # apply sobel filter to the box
-        sobelx = cv2.Sobel(box, cv2.CV_64F, 1, 0, ksize=5)
-        sobely = cv2.Sobel(box, cv2.CV_64F, 0, 1, ksize=5)
-        sobel = cv2.magnitude(sobelx, sobely)
-        cv2.imwrite(str(save_path), sobel)
+        # make grayscale and apply sobel filter
+        gray = cv2.cvtColor(box, cv2.COLOR_BGR2GRAY)
+        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+        sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+        box = cv2.magnitude(sobelx, sobely).astype(np.uint8)
+        # apply opening operator
+        # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        # box = cv2.morphologyEx(box, cv2.MORPH_OPEN, kernel)
+        cv2.imwrite(str(save_path), box)
+        break
+    break
