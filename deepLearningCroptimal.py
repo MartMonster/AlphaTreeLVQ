@@ -13,7 +13,7 @@ DATA_DIR = "Croptimal/resnet"          # Root folder containing 'train' and 'val
 BATCH_SIZE = 16
 NUM_CLASSES = 2
 NUM_EPOCHS = 10
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 1e-4
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ==== TRANSFORMS ====
@@ -67,6 +67,9 @@ model = model.to(DEVICE)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.01)
 
+# ==== AMP SCALER ====
+scaler = torch.amp.GradScaler(device=DEVICE.type)
+
 # ==== TRAINING FUNCTION ====
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=NUM_EPOCHS):
     since = time.time()
@@ -86,14 +89,17 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=NUM_EPOCHS)
                 inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
                 optimizer.zero_grad()
 
-                with torch.set_grad_enabled(phase == 'train'):
+                # Use autocast for mixed precision
+                with torch.amp.autocast(device_type=DEVICE.type):
                     outputs = model(inputs)
                     _, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, labels)
 
-                    if phase == 'train':
-                        loss.backward()
-                        optimizer.step()
+                if phase == 'train':
+                    # Scale the loss for mixed precision
+                    scaler.scale(loss).backward()
+                    scaler.step(optimizer)
+                    scaler.update()
 
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
