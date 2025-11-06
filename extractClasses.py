@@ -15,7 +15,7 @@ def parse_labels(file_path):
             parsed_data.append((label, bbox))
     return parsed_data
 
-directory = Path("Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/test")
+directory = Path("Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/val")
 for count, file_path in enumerate(directory.glob("*.txt")):
     print(f"Processing {file_path.name} ({count + 1}/{len(list(directory.glob('*.txt')))})")
     img_path = file_path.with_suffix('.png')
@@ -37,19 +37,11 @@ for count, file_path in enumerate(directory.glob("*.txt")):
         y2 = int(y_center + box_height / 2)
 
         box = img[y1:y2, x1:x2]
-        save_dir = directory / f"open_class_{label}"
+        save_dir = directory / f"256_class_{label}"
         save_dir.mkdir(exist_ok=True)
         save_path = save_dir / f"{file_path.stem}_{index}.png"
         if box.shape[0] < 1 or box.shape[1] < 1:
             continue
-        # make grayscale and apply sobel filter
-        gray = cv2.cvtColor(box, cv2.COLOR_BGR2GRAY)
-        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
-        sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
-        box = cv2.magnitude(sobelx, sobely).astype(np.uint8)
-        # apply opening operator
-        # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        # box = cv2.morphologyEx(box, cv2.MORPH_OPEN, kernel)
+        # resize to 256x256
+        box = cv2.resize(box, (256, 256))
         cv2.imwrite(str(save_path), box)
-        break
-    break
