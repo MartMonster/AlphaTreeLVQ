@@ -15,6 +15,10 @@ NUM_CLASSES = 2
 NUM_EPOCHS = 100
 LEARNING_RATE = 1e-4
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if DEVICE.type == 'cuda':
+    print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+else:
+    print("Using CPU")
 
 # ==== TRANSFORMS ====
 # Swin-T expects at least 224x224, so 256x256 is fine
