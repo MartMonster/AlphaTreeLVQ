@@ -130,5 +130,5 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=NUM_EPOCHS)
 best_model = train_model(model, dataloaders, criterion, optimizer, NUM_EPOCHS)
 
 # ==== SAVE MODEL ====
-# torch.save(best_model.state_dict(), "swinT_two_class.pth")
-# print("Model saved to swinT_two_class.pth")
+torch.save(best_model.state_dict(), "swinT_two_class.pth")
+print("Model saved to swinT_two_class.pth")
