@@ -12,7 +12,7 @@ import os
 DATA_DIR = "Croptimal/resnet"          # Root folder containing 'train' and 'val' subfolders
 BATCH_SIZE = 16
 NUM_CLASSES = 2
-NUM_EPOCHS = 10
+NUM_EPOCHS = 100
 LEARNING_RATE = 1e-4
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
