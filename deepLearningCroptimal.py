@@ -149,7 +149,7 @@ DATA_DIR = "Croptimal/resnet"          # Root folder containing 'train' and 'val
 BATCH_SIZE = 16
 NUM_CLASSES = 2
 NUM_EPOCHS = 100
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 1e-5
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if DEVICE.type == 'cuda':
     print(f"Using GPU: {torch.cuda.get_device_name(0)}")
