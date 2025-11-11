@@ -494,8 +494,8 @@ class_names = image_datasets['train'].classes
 print(f"Classes: {class_names}")
 print(f"Dataset sizes: {dataset_sizes}")
 
-# ==== MODEL: Swin Transformer (Tiny) ====
-model = models.swin_t(weights=models.Swin_T_Weights.IMAGENET1K_V1)
+# ==== MODEL: Swin Transformer (Small) ====
+model = models.swin_s(weights=models.Swin_S_Weights.IMAGENET1K_V1)
 num_ftrs = model.head.in_features
 model.head = nn.Linear(num_ftrs, NUM_CLASSES)
 model = model.to(DEVICE)
