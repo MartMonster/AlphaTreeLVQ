@@ -494,9 +494,9 @@ class_names = image_datasets['train'].classes
 print(f"Classes: {class_names}")
 print(f"Dataset sizes: {dataset_sizes}")
 
-# ==== MODEL: Swin Transformer (Small) ====
-MODELNAME = "swin_s"
-model = models.swin_s(weights=models.Swin_S_Weights.IMAGENET1K_V1)
+# ==== MODEL: Swin Transformer (Tiny) ====
+MODELNAME = "swin_t"
+model = models.swin_t(weights=models.Swin_T_Weights.IMAGENET1K_V1)
 num_ftrs = model.head.in_features
 model.head = nn.Linear(num_ftrs, NUM_CLASSES)
 model = model.to(DEVICE)
@@ -514,7 +514,6 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-    epochs_no_improve = 0
 
     # Prepare CSV log
     log_path = f"training_log_{MODELNAME}.csv"
