@@ -479,12 +479,12 @@ class_names = image_datasets['train'].classes
 print(f"Classes: {class_names}")
 print(f"Dataset sizes: {dataset_sizes}")
 
-# ==== MODEL: MobileNet V3 Large ====
-MODELNAME = "mobilenet_v3_large"
-model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V1)
-# Replace the classifier for binary classification
-num_ftrs = model.classifier[3].in_features
-model.classifier[3] = nn.Linear(num_ftrs, NUM_CLASSES)
+# ==== MODEL: ResNet50 ====
+MODELNAME = "resnet50"
+model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+# Replace the final layer for binary classification
+num_ftrs = model.fc.in_features
+model.fc = nn.Linear(num_ftrs, NUM_CLASSES)
 model = model.to(DEVICE)
 
 # ==== LOSS, OPTIMIZER, SCHEDULER ====
