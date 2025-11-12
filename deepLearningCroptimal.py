@@ -451,7 +451,7 @@ import csv
 DATA_DIR = "Croptimal/resnet"          # Root folder containing 'train' and 'val' subfolders
 BATCH_SIZE = 16
 NUM_CLASSES = 2
-NUM_EPOCHS = 50
+NUM_EPOCHS = 25
 LEARNING_RATE = 1e-4
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if DEVICE.type == 'cuda':
@@ -495,6 +495,7 @@ print(f"Classes: {class_names}")
 print(f"Dataset sizes: {dataset_sizes}")
 
 # ==== MODEL: Swin Transformer (Small) ====
+MODELNAME = "swin_s"
 model = models.swin_s(weights=models.Swin_S_Weights.IMAGENET1K_V1)
 num_ftrs = model.head.in_features
 model.head = nn.Linear(num_ftrs, NUM_CLASSES)
@@ -508,9 +509,6 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0
 # ==== AMP SCALER ====
 scaler = torch.amp.GradScaler()
 
-# ==== EARLY STOPPING ====
-early_stop_patience = 5
-
 # ==== TRAINING FUNCTION ====
 def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=NUM_EPOCHS):
     since = time.time()
@@ -519,7 +517,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
     epochs_no_improve = 0
 
     # Prepare CSV log
-    log_path = "training_log.csv"
+    log_path = f"training_log_{MODELNAME}.csv"
     with open(log_path, mode='w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(["epoch", "phase", "loss", "accuracy", "lr"])
@@ -572,15 +570,6 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
         if val_acc > best_acc:
             best_acc = val_acc
             best_model_wts = copy.deepcopy(model.state_dict())
-            epochs_no_improve = 0
-        else:
-            epochs_no_improve += 1
-
-        print(f"No improvement for {epochs_no_improve} epochs.\n")
-
-        if epochs_no_improve >= early_stop_patience:
-            print("⏹️ Early stopping triggered — validation accuracy not improving.")
-            break
 
     time_elapsed = time.time() - since
     print(f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
@@ -594,5 +583,5 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
 best_model = train_model(model, dataloaders, criterion, optimizer, scheduler, NUM_EPOCHS)
 
 # ==== SAVE FINAL MODEL ====
-torch.save(best_model.state_dict(), "swint_two_class_amp_log.pth")
-print("Model saved to swint_two_class_amp_log.pth")
+torch.save(best_model.state_dict(), f"{MODELNAME}_two_class_amp_log.pth")
+print(f"Model saved to {MODELNAME}_two_class_amp_log.pth")
