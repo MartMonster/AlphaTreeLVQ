@@ -48,10 +48,14 @@ class gmlvq_net(nn.Module):
             return self.proto_labels[distances.argmin(1)]
 
 class gmlvq():
-    LR = 0.01
+    def __init__(self, LR=1e-4):
+        self.LR = LR
 
     def optimizer(self):
-        return torch.optim.AdamW(self.net.parameters(), lr = self.LR, weight_decay = 0)
+        return torch.optim.AdamW([
+        {"params": self.net.protos, "lr": self.LR},
+        {"params": self.net.mat, "lr": self.LR * 0.1},
+    ], weight_decay=0.0)
 
     def initialize(self, n_feats, initial_protos, proto_labels, use_matrix_per_proto, mu, std):
         self.net = gmlvq_net(n_feats, initial_protos, proto_labels, use_matrix_per_proto, mu, std)
@@ -73,7 +77,10 @@ class gmlvq():
         min_distance_same = distances.maximum((~correct) * np.finfo(np.float32).max).min(1).values
         # minimum distance to a prototype with a different label
         min_distance_other = distances.maximum((correct) * np.finfo(np.float32).max).min(1).values
-        loss = ((min_distance_same - min_distance_other) / (min_distance_same + min_distance_other)).mean()
+        
+        eps = 1e-8
+        loss = ((min_distance_same - min_distance_other) /
+            (min_distance_same + min_distance_other + eps)).mean()
 
         return loss
     
@@ -86,11 +93,23 @@ class gmlvq():
         with torch.no_grad():
             if self.net.use_matrix_per_proto:
                 for i in range(self.net.protos.shape[0]):
-                    self.net.mat[i] /= self.net.mat[i].norm()
+                    covariance_matrix = self.net.mat[i] @ self.net.mat[i].T
+                    trace = torch.trace(covariance_matrix)
+                    if trace > 0:
+                        self.net.mat[i] /= torch.sqrt(trace)
             else:
-                self.net.mat /= self.net.mat.norm()
+                covariance_matrix = self.net.mat @ self.net.mat.T
+                trace = torch.trace(covariance_matrix)
+                if trace > 0:
+                    self.net.mat /= torch.sqrt(trace)
             
         return loss
     
     def inference(self, x):
         return self.net(x)
+    
+    def freeze_metric(self):
+        self.net.mat.requires_grad_(False)
+
+    def unfreeze_metric(self):
+        self.net.mat.requires_grad_(True)
