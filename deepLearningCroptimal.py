@@ -222,12 +222,12 @@ class_names = image_datasets['train'].classes
 print(f"Classes: {class_names}")
 print(f"Dataset sizes: {dataset_sizes}")
 
-# ==== MODEL: ResNet50 ====
-MODELNAME = "resnet50"
-model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+# ==== MODEL: Swin Small ====
+MODELNAME = "swin_s"
+model = models.swin_s(weights=models.Swin_S_Weights.DEFAULT)
 # Replace the final layer for binary classification
-num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, NUM_CLASSES)
+num_ftrs = model.head.in_features
+model.head = nn.Linear(num_ftrs, NUM_CLASSES)
 model = model.to(DEVICE)
 
 # ==== LOSS, OPTIMIZER, SCHEDULER ====
