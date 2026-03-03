@@ -30,13 +30,30 @@ class alvq_net(nn.Module):
         n_feats = x.shape[-1]
         mapped_x = (mat @ x.reshape(-1, n_feats, 1)).reshape(1, -1, n_feats)
         x = x.reshape(1, -1, n_feats) * mapped_x
-        return torch.sqrt(x.sum(2)).squeeze()
+        return torch.sqrt(torch.clamp(x.sum(2), min=1e-12)).squeeze()
 
     def probabilities(self, x):
         x = self.angular_dissimilarities(x)
+        if torch.isnan(x).any() or torch.isinf(x).any() or (x == 0.0).any():
+            print("angular dissimilarities contain NaN, Inf or negative values")
+            print(x)
+            raise RuntimeError("angular dissimilarities contain NaN, Inf or negative values")
         beta = 1
         x = (torch.exp(-beta * (x - 1)) - 1) / (np.exp(beta * 2) - 1)
-        x = x / x.sum(1, keepdim=True)     
+        if torch.isnan(x).any() or torch.isinf(x).any():
+            print("probabilities contain NaN or Inf before normalization")
+            print(x)
+            raise RuntimeError("probabilities contain NaN or Inf before normalization")
+        x = x / x.sum(1, keepdim=True) 
+        if torch.isnan(x).any() or torch.isinf(x).any():
+            print("probabilities contain NaN or Inf after normalization")
+            print(x)
+            raise RuntimeError("probabilities contain NaN or Inf after normalization")
+        x = torch.clamp(x, min=0.001, max=0.999)
+        if torch.isnan(x).any() or torch.isinf(x).any():
+            print("probabilities contain NaN or Inf")
+            print(x)
+            raise RuntimeError("probabilities contain NaN or Inf")
         return x         
     
     def angular_dissimilarities(self, x):
