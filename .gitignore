@@ -32,3 +32,4 @@ out_test.txt
 Croptimal.zip
 *.TIF
 *.pth
+.venv
