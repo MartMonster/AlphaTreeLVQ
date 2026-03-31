@@ -33,3 +33,4 @@ Croptimal.zip
 *.TIF
 *.pth
 .venv
+.vscode

@@ -122,6 +122,7 @@ def create_samples(images, batch_sz):
         
         for k, (img, weight) in enumerate(images[i]):
             count = sample_counts[i][k]
+            # print(f"Sampling {count} pixels from image {k} of class {i}")
             img_pix = img_sample(img, count)
             pix[offset:(offset + count), :] = img_pix
             labels[offset:(offset + count)] = i
@@ -130,7 +131,7 @@ def create_samples(images, batch_sz):
     assert(offset == batch_sz)
         
     I = np.random.permutation(batch_sz)
-
+    # print(f"Sampled {batch_sz} pixels, length of labels: {len(labels)}, length of pix: {len(pix)}")
     return pix[I, ...], labels[I]
         
 def data_loader(images, batch_sz):

@@ -29,7 +29,8 @@ def read_imgs(img_dir, class_subdirs):
                     (hsv[:, :, 1] >= saturation[0]) & (hsv[:, :, 1] <= saturation[1])
                 )
                 # Extract only H and S values where mask is True
-                hs_pixels = hsv[:, :, 0:2].reshape(-1, 2)
+                hs_pixels = hsv[:, :, 0:2][mask].reshape(-1, 2)
+                # hs_pixels = hsv[:, :, 0:2].reshape(-1, 2)
                 # Skip image if no valid pixels
                 if hs_pixels.shape[0] == 0:
                     continue

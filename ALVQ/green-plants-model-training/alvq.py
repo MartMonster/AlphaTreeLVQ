@@ -44,7 +44,7 @@ class alvq_net(nn.Module):
             print("probabilities contain NaN or Inf before normalization")
             print(x)
             raise RuntimeError("probabilities contain NaN or Inf before normalization")
-        x = x / x.sum(1, keepdim=True) 
+        x = x / torch.clamp(x.sum(1, keepdim=True), min=1e-12)
         if torch.isnan(x).any() or torch.isinf(x).any():
             print("probabilities contain NaN or Inf after normalization")
             print(x)
@@ -58,7 +58,10 @@ class alvq_net(nn.Module):
     
     def angular_dissimilarities(self, x):
         n_feats = x.shape[-1]
-        
+        if torch.isnan(x).any() or torch.isinf(x).any():
+            print("input contains NaN or Inf")
+            print(x)
+            raise RuntimeError("input contains NaN or Inf")
         if (x.dim() > 2):
             x = x.reshape(-1, n_feats)        
 
