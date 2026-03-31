@@ -225,6 +225,10 @@ print(f"Dataset sizes: {dataset_sizes}")
 # ==== MODEL: Swin Small ====
 MODELNAME = "swin_s"
 model = models.swin_s(weights=models.Swin_S_Weights.DEFAULT)
+model = models.swin_t(weights=models.Swin_T_Weights.DEFAULT)
+model = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.DEFAULT)
+model = models.inception_v3(weights=models.Inception_V3_Weights.DEFAULT)
+model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
 # Replace the final layer for binary classification
 num_ftrs = model.head.in_features
 model.head = nn.Linear(num_ftrs, NUM_CLASSES)
