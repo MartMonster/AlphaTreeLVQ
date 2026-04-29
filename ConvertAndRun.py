@@ -1,21 +1,22 @@
 import sys, cv2, os
 import numpy as np
 
-if (len(sys.argv) != 2):
-    print("program use: python3 [filename] [image input name]")
+if (len(sys.argv) < 2 or len(sys.argv) > 4):
+    print("program use: python3 [filename] [image input name] [alpha filter value]")
     sys.exit(1)
 imageName = sys.argv[1]
+alphaFilter = int(sys.argv[2]) if len(sys.argv) > 2 else 1000
 print("input image: "+imageName)
 img = cv2.imread(imageName, cv2.IMREAD_UNCHANGED)
 if img is None:
     raise ValueError("Could not read or find image")
 if img.dtype == np.uint16:
-    # Scale 8-bit values to 16-bit range (0–255 to 0–65535)
+    # Scale 8-bit values to 16-bit range (0-255 to 0-65535)
     img_8bit = (img / 257).astype(np.uint8)
     img_16bit = img
 else:
     img_8bit = img
-    img_16bit = (img * 257).astype(np.uint16)
+    img_16bit = (img.astype(np.uint16) * 257).astype(np.uint16)
 
 def apply_clahe(image_8bit):
 
@@ -38,4 +39,4 @@ def apply_clahe(image_8bit):
 img_normalized_16bit = img_16bit
 cv2.imwrite("output/normalized_16bpc.png", img_normalized_16bit)
 
-os.system("./AlphaTree config_test.txt | tee -a output/out_test.txt")
+os.system(f"./AlphaTree config_test.txt output/normalized_16bpc.png {alphaFilter} | tee -a output/out_test.txt")
