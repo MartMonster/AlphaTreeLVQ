@@ -15,7 +15,7 @@ def parse_labels(file_path):
             parsed_data.append((label, bbox))
     return parsed_data
 
-directory = Path("Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/val")
+directory = Path("Croptimal/2024_5_13_CleansingDataset/Run1_light_normal_otherobjects/test")
 for count, file_path in enumerate(directory.glob("*.txt")):
     print(f"Processing {file_path.name} ({count + 1}/{len(list(directory.glob('*.txt')))})")
     img_path = file_path.with_suffix('.png')
@@ -37,8 +37,8 @@ for count, file_path in enumerate(directory.glob("*.txt")):
         y2 = int(y_center + box_height / 2)
 
         box = img[y1:y2, x1:x2]
-        save_dir = directory / f"256_class_{label}"
-        save_dir.mkdir(exist_ok=True)
+        save_dir = Path("Croptimal/resnet/") / "val" / f"256_class_{label}"
+        save_dir.mkdir(parents=True, exist_ok=True)
         save_path = save_dir / f"{file_path.stem}_{index}.png"
         if box.shape[0] < 1 or box.shape[1] < 1:
             continue
