@@ -59,18 +59,20 @@ print(f"Dataset sizes: {dataset_sizes}")
 # ==== MODEL: ResNet50 ====
 MODELNAME = "resnet50"
 model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
-# Replace the final layer for binary classification
-num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, NUM_CLASSES)
-# freeze base model except the last layer
+
+# Freeze backbone
 for param in model.parameters():
     param.requires_grad = False
-model.fc.requires_grad = True
+
+# Replace classifier (new Linear defaults to requires_grad=True)
+num_ftrs = model.fc.in_features
+model.fc = nn.Linear(num_ftrs, NUM_CLASSES)
+
 model = model.to(DEVICE)
 
 # ==== LOSS, OPTIMIZER, SCHEDULER ====
 criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=0.01)
+optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=LEARNING_RATE, weight_decay=0.01)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
 
 # ==== AMP SCALER ====
