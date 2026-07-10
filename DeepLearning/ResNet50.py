@@ -13,7 +13,7 @@ from tqdm import tqdm
 DATA_DIR = "../Croptimal/resnet"          # Root folder containing 'train' and 'val' subfolders
 BATCH_SIZE = 16
 NUM_CLASSES = 2
-NUM_EPOCHS = 500
+NUM_EPOCHS = 50
 LEARNING_RATE = 1e-4
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if DEVICE.type == 'cuda':
@@ -73,6 +73,12 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0
 scaler = torch.amp.GradScaler()
 
 # ==== TRAINING FUNCTION ====
+
+# freeze base model except the last layer
+for param in model.parameters():
+    param.requires_grad = False
+model.fc.requires_grad = True
+
 def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=NUM_EPOCHS):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
