@@ -60,11 +60,15 @@ print(f"Dataset sizes: {dataset_sizes}")
 MODELNAME = "resnet50"
 model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
 
-# Freeze backbone
+# Freeze everything
 for param in model.parameters():
     param.requires_grad = False
 
-# Replace classifier (new Linear defaults to requires_grad=True)
+# Unfreeze the last residual block
+for param in model.layer4.parameters():
+    param.requires_grad = True
+
+# Unfreeze the classifier
 num_ftrs = model.fc.in_features
 model.fc = nn.Linear(num_ftrs, NUM_CLASSES)
 
